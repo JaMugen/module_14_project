@@ -228,10 +228,6 @@ Then submit the GitHub repository link as instructed.
 
 ---
 
-# 8. Run Locally
-
-To run locally first create the virtual environment as instructed. Then us the docker compose file to create the running containers. Lastly ru Pytest as instructed. 
-
 # 🔥 Useful Commands Cheat Sheet
 
 | Action                         | Command                                          |
@@ -261,7 +257,6 @@ To run locally first create the virtual environment as instructed. Then us the d
 
 # 📎 Quick Links
 
--[DockerHub](https://hub.docker.com/repository/docker/pitou500/module_11_project/general)
 - [Homebrew](https://brew.sh/)
 - [Git Downloads](https://git-scm.com/downloads)
 - [Python Downloads](https://www.python.org/downloads/)
