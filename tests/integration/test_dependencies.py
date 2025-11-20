@@ -103,3 +103,21 @@ def test_get_current_active_user_inactive(mock_verify_token):
 
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
     assert exc_info.value.detail == "Inactive user"
+
+#Test get_current_user with valid token and minimal payload (UUID only)
+def test_get_current_user_valid_token_minimal_payload(mock_verify_token):
+    user_id = sample_user_data["id"]
+    mock_verify_token.return_value = user_id
+
+    user_response = get_current_user(token="validtoken")
+
+    assert isinstance(user_response, UserResponse)
+    assert user_response.id == sample_user_data["id"]
+    assert user_response.username == "unknown"
+    assert user_response.email == "unknown@example.com"
+    assert user_response.first_name == "Unknown"
+    assert user_response.last_name == "User"
+    assert user_response.is_active is True
+    assert user_response.is_verified is False
+    assert isinstance(user_response.created_at, datetime)
+    assert isinstance(user_response.updated_at, datetime)
