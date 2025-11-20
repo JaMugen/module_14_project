@@ -194,3 +194,4 @@ def test_missing_password_registration(db_session):
     # Adjust the expected error message
     with pytest.raises(ValueError, match="Password must be at least 6 characters long"):
         User.register(db_session, test_data)
+
