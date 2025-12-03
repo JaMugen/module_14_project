@@ -171,17 +171,25 @@ def find_available_port() -> int:
 def fastapi_server():
     """
     Start a FastAPI test server in a subprocess. If the chosen port (default: 8000)
-    is already in use, find another available port. Wait until the server is up
-    before yielding its base URL.
+    is already in use (e.g., Docker container running), use that instead of starting a new one.
     """
     base_port = 8000
     server_url = f'http://127.0.0.1:{base_port}/'
-
-    # Check if port is free; if not, pick an available port
+    health_url = f"{server_url}health"
+    
+    # Check if server is already running on port 8000 (e.g., Docker)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         if s.connect_ex(('127.0.0.1', base_port)) == 0:
-            base_port = find_available_port()
-            server_url = f'http://127.0.0.1:{base_port}/'
+            logger.info(f"Server already running on port {base_port}, checking if it's healthy...")
+            if wait_for_server(health_url, timeout=5):
+                logger.info(f"Using existing server at {server_url}")
+                yield server_url
+                return
+            else:
+                logger.warning(f"Port {base_port} is occupied but server is not healthy, trying different port...")
+                base_port = find_available_port()
+                server_url = f'http://127.0.0.1:{base_port}/'
+                health_url = f"{server_url}health"
 
     logger.info(f"Starting FastAPI server on port {base_port}...")
 
@@ -194,7 +202,6 @@ def fastapi_server():
     )
 
     # IMPORTANT: Use the /health endpoint for the check!
-    health_url = f"{server_url}health"
     if not wait_for_server(health_url, timeout=30):
         stderr = process.stderr.read()
         logger.error(f"Server failed to start. Uvicorn error: {stderr}")
