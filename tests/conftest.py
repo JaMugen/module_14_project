@@ -193,20 +193,25 @@ def fastapi_server():
 
     logger.info(f"Starting FastAPI server on port {base_port}...")
 
-    process = subprocess.Popen(
-        ['uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', str(base_port)],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        cwd='.'  # ensure the working directory is set correctly
-    )
+    try:
+        process = subprocess.Popen(
+            ['uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', str(base_port)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd='.'  # ensure the working directory is set correctly
+        )
+    except FileNotFoundError:
+        logger.error("uvicorn not found. Make sure it's installed in the environment.")
+        raise ServerStartupError("uvicorn command not found")
 
     # IMPORTANT: Use the /health endpoint for the check!
     if not wait_for_server(health_url, timeout=30):
-        stderr = process.stderr.read()
-        logger.error(f"Server failed to start. Uvicorn error: {stderr}")
+        stdout_output = process.stdout.read() if process.stdout else ""
+        stderr_output = process.stderr.read() if process.stderr else ""
+        logger.error(f"Server failed to start. Stdout: {stdout_output}, Stderr: {stderr_output}")
         process.terminate()
-        raise ServerStartupError(f"Failed to start test server on {health_url}")
+        raise ServerStartupError(f"Failed to start test server on {health_url}. Check that the app starts correctly.")
 
     logger.info(f"Test server running on {server_url}.")
     yield server_url
